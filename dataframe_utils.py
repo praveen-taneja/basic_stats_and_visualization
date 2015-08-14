@@ -278,7 +278,9 @@ code - for each column, make 1 plot. In each plot, plot m*n means
         pl.title(col_name, size=24)
         p = avg.plot(kind = 'bar', yerr = sem, grid = None, fill = None)
         x_locs = np.array(p.xaxis.get_majorticklocs())
-        pl.grid(None)
+        #pl.grid(None)
+        ax = pl.gca()
+        ax.grid(False)
         if display_raw:
             # plot raw points with some scatter so that they don't overlap
             #for bar_num, num_pnts in enumerate(size):
