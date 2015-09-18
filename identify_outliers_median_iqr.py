@@ -6,21 +6,16 @@ by Praveen Taneja praveen.taneja@gmail.com
 #print(__doc__)
 
 import datetime
-import matplotlib.pyplot as pl
 import pandas as pd
 #import itertools
 #import math
 import sys
-sys.path.append('C:/Users/praveen.taneja/Dropbox/Analysis/python_progs/EclipseIDEWorkSpace/pt_PyUtilsDir')
-sys.path.append('C:/Users/praveen.taneja/Dropbox/Analysis/python_progs/python_data_analysis/cluster_analysis/cluster_analysis_git')
-#sys.path.append('/Users/taneja/Dropbox/Analysis/python_progs/EclipseIDEWorkSpace/pt_PyUtilsDir')
-import dataframe_utils
+sys.path.append('C:/Users/praveen.taneja/Dropbox/Analysis/python_progs/'
+                'EclipseIDEWorkSpace/pt_PyUtilsDir')
 import pt_PyUtils
 import os
 import imp
-imp.reload(dataframe_utils)
 imp.reload(pt_PyUtils)
-#import plot_dataframe_means
 
 ###################################################
 
@@ -50,6 +45,8 @@ data_file_no_ext = os.path.splitext(data_file)[0]
 
 # read actual user dataset 
 df = pd.read_table(data_file, delimiter = ',')
+print df.info()
+
 med =  df.median()
 lower_q = df.quantile(q = 0.25)
 upper_q = df.quantile(q = 0.75)
@@ -72,26 +69,3 @@ for col in all_cols:
         if val < lower_cutoff[col] or val > upper_cutoff[col]:
             print 'outlier...',df[col_with_row_id][idx],val
     print ' '
-    
-#print df.info()
-'''
-df_out = pd.DataFrame()
-for outlier in outlier_minmax:
-    par_name = outlier[0]
-    min_val = outlier[1]
-    max_val = outlier[2]
-    # create a column par_name + '_OL' which is one if par_name is OL, else zero
-    # use bitwise '|' because we are comparing a sequence of booleans with 
-    # another sequence of booleans.
-    #x = 1*( (df[par_name] < min_val) | (df[par_name] > max_val) )
-    #df_out[''.join([par_name, '_OL'])] = x
-    n = len(df[par_name].index)
-    for idx, val in zip(df.index, df[par_name]):
-        if val < min_val or val > max_val:
-            print 'outlier...',df[col_with_row_id][idx],val
-            
-       
-
-#df_out.to_csv(outdatafile)
-#print 'values saved to', outdatafile+".csv"
-'''

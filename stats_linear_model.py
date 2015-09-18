@@ -9,36 +9,29 @@ import matplotlib.pyplot as pl
 import pandas as pd
 import statsmodels.api as sm
 from patsy import dmatrices
+import statsmodels.sandbox.stats.multicomp as multicomp
 import sys
-#sys.path.append('/Users/taneja/Dropbox/Analysis/python_progs/EclipseIDEWorkSpace/pt_PyUtilsDir')
-sys.path.append('C:/Users/praveen.taneja/Dropbox/Analysis/python_progs/EclipseIDEWorkSpace/pt_PyUtilsDir')
-sys.path.append('C:/Users/praveen.taneja/Dropbox/Analysis/python_progs/python_data_analysis/cluster_analysis/cluster_analysis_git')
-
-#import dataframe_utils
+sys.path.append('C:/Users/praveen.taneja/Dropbox/Analysis/python_progs/'
+                'EclipseIDEWorkSpace/pt_PyUtilsDir')
+sys.path.append('C:/Users/praveen.taneja/Dropbox/Analysis/python_progs/'
+                'python_data_analysis/cluster_analysis/cluster_analysis_git')
 import pt_PyUtils
+import dataframe_utils
 import imp
 import os
-#imp.reload(dataframe_utils)
+
 imp.reload(pt_PyUtils)
-#import plot_dataframe_means
+imp.reload(dataframe_utils)
 
 ###################################################
 
 #######Start - Variables to be edited by user #####
 
-# Path for input data file without file suffix
-#indatafile = "/Users/taneja/Work/Dravet/pt_Dravet_FI_L5A_SubsetFI_AnalysisNPooled_AddAnalysis_Subset"
-#indatafile = "C:\\Users\\praveen.taneja\\OneDrive\\ProGran_FullKO_NucAccumbens_Grietje\\Analysis01_14_15\\pt_ProGran_FullKO_NucAccumbens_FIAnalysisNPooled01_14_15_NoOL_less_cols"
-#indatafile = "C:\Users\praveen.taneja.GLADSTONE\Dropbox\Analysis\python_progs\python_data_analysis\pt_Dravet_FI_L5A_SubsetFI_AnalysisNPooled_AddAnalysis_out"
-#indatafile = "/Users/taneja/Dropbox/Analysis/python_progs/python_data_analysis/stats/Reducing variability by including other explanatory variables"
-#indatafile = "C:\Users\praveen.taneja\Dropbox\Analysis\stats\Reducing variability by including other explanatory variables"
-#indatafile = "/Users/taneja/Work/GanLab/pt_ProGran_FullKO_NucAccumbens_FIAnalysisAndPooled_400pA_LessCols"
-#indatafile = "C:\Users\praveen.taneja\Dropbox\Analysis\stats\Reducing variability by including other explanatory variables"
-#Input file suffix
-#indatafile  = "H:\\Core Labs\\Electrophysiology\\PraveenT\\MuckeLab\\CaPermAmpa\\AmpaDecayTauCoef_long_no_outliers_means_with_gt"
-#indatafile  = "C:/Users/taneja/Work/sumihiro/150213_hTau_20mo_RawData_Slopes"
-#suffix = ".csv"
+factor_name = 'GT'
 
+# for now the following has to be altered in the code below
+# 1. data filtering based on any conditon(s)
+# 2. Model formula to fit
 #######End - Variables to be edited by user #######
 ###################################################
 
@@ -51,34 +44,44 @@ now = datetime.datetime.now()
 print "Starting analysis at:", now.strftime("%m-%d-%Y %H:%M")
 print "====================================================="
 
-#outdatafile = indatafile + "_means"
 
 # read actual user dataset 
 df = pd.read_table(data_file, delimiter = ',')
-#print df.head()
-#vars = ["AvgFreq400pA", "GT", "RInAvg"]
-#df = df[vars]
-#print df.head(3)
-#sys.exit()
-#pl.plot(df["CmAvg"], df["AvgFreq700pA"], marker = "o", linestyle = "")
-#Weight gender   Height  Weight_wH
-# GT  Age Gender  AvgFreq400pA  InstFreq400pA  SpkTrainAhp400pA
-# AdaptR400pA  InstFreq_0Spk400pA  Ahp_0Spk400pA  PeakAmp_0Spk400pA
-# Fwhm_0Spk400pA  VThresh_0Spk400pA  MaxDvDt_0Spk400pA  T2FracPeak_0Spk400pA
-# RsAvg     RInAvg         CmAvg     FI_CurrTh      FI_Slope
 
-#df["RInAvg"] *=1e-6
+col_names_numeric = dataframe_utils.numeric_cols(df)
 
 df1 = df.copy()
+# filter data set if needed
 #df1 = df1[df1['Gender'] == 'm']
-#print df1.head(40)
+#df1 = df1[df1['start_time_sec'] <= 240] # 240, 360, 540
+
+#print df1['start_time_sec'].head(40)
+
+par_vals = []
+
+for col in col_names_numeric:
+    formula = ' '.join([col, '~', 
+                    'C(',factor_name, ',Treatment(reference = \'I5A+\'))'])
+    #print formula
+    y, X = dmatrices(formula, data=df1, return_type='dataframe')
+    mod = sm.OLS(y, X)    # Describe model
+    res = mod.fit()       # Fit model
+    print res.summary()  # Summarize model
+    # use dir(res) to see all results that are available
+    # correct for multiple comparisons
+    # 1st p-value is for reference level and is removed
+    p_corr = multicomp.multipletests(res.pvalues.values[1:], method = 'holm')
+    print 'Uncorrected p-values:', res.pvalues
+    print 'Corrected p-values:', p_corr[1]
+    par_vals.append([col, res.df_resid, res.rsquared_adj, res.f_pvalue] +
+                    list(res.pvalues.values[1:])+ list(p_corr[1]))
 
 
-#y, X = dmatrices('Ahp_0Spk250pA ~ GT', data=df1, return_type='dataframe')
-y, X = dmatrices('IFrqNormCm_MaxFreq ~ GT', data=df1, return_type='dataframe')
-#print y[:3]
-#print X[:3]
-mod = sm.OLS(y, X)    # Describe model
-res = mod.fit()       # Fit model
-print res.summary()   # Summarize model
-#pl.show()
+df_out = pd.DataFrame(par_vals, columns = ['par_name', 'deg_free', 'r_sq_adj',
+                    'p_val', 'p_J20A_I5A', 'p_NTG_I5A', 'p_adj_J20A_I5A', 'p_adj_NTG_I5A'])
+df_out = df_out.sort(columns = ['p_val']) # sort by p-values
+data_file_no_ext = os.path.splitext(data_file)[0]
+df_out.to_csv(data_file_no_ext + '_5minRefI5A_stats.csv',index = False)
+            
+
+

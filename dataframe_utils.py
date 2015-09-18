@@ -188,7 +188,7 @@ def column_plots(df, delimiter, outdatafile, graphs_per_plot = 8):
 
 
 
-def group_means(df, groupby_list, outdatafile, display_raw = True, autoscale = False):
+def group_means(df, groupby_list, outdatafile, display_raw = True, autoscale = False, colors = None):
     '''
 given a data-frame, and some groupby factors, plot 
 
@@ -205,7 +205,7 @@ column there will be 12 means.
 
 code - for each column, make 1 plot. In each plot, plot m*n means
     '''
-
+    print 'data frame shape', df.shape
     #print 'groupbylist',groupbylist
     grouped = df.groupby(groupby_list)
     #print grouped.groups
@@ -222,6 +222,19 @@ code - for each column, make 1 plot. In each plot, plot m*n means
     #    print name, type(group)
     pp = PdfPages(outdatafile+".pdf")
     stats_list = []
+    
+    if len(groupby_list) > 1:
+        last_group = groupby_list[-1]
+        last_group_num_unique = len(df[last_group].unique())
+        print 'last_group =', last_group
+        print 'last_group_num_unique =', last_group_num_unique
+        print 'unique values =', df[last_group].unique()
+        all_colors = []
+        for color in colors:
+            all_colors = all_colors + [color]*last_group_num_unique
+    else:
+            all_colors = colors # no enclosing group
+    print all_colors
     
     for col_num, col_name in enumerate(col_names_numeric):
         #print "***group[col_name].describe***", grouped[col_name]#.describe()
@@ -276,11 +289,16 @@ code - for each column, make 1 plot. In each plot, plot m*n means
         #print 'standard error of mean', sem
         pl.figure(figsize=(10, 10))
         pl.title(col_name, size=24)
-        p = avg.plot(kind = 'bar', yerr = sem, grid = None, fill = None)
+        #print colors
+        #all_colors = all_colors*len(avg)
+        #print all_colors
+        p = avg.plot(kind = 'bar', yerr = sem, grid = None, color = all_colors) #, fill = None
+        pl.plot()
         x_locs = np.array(p.xaxis.get_majorticklocs())
         #pl.grid(None)
         ax = pl.gca()
         ax.grid(False)
+        '''
         if display_raw:
             # plot raw points with some scatter so that they don't overlap
             #for bar_num, num_pnts in enumerate(size):
@@ -294,6 +312,25 @@ code - for each column, make 1 plot. In each plot, plot m*n means
                 pl.plot(x, group[1], linestyle='',marker = 'o', color ='magenta', alpha=0.3, markersize = 4.0)
                 if autoscale:
                     pl.ylim(min_val, max_val)
+        '''
+        
+        # plot raw points with some scatter so that they don't overlap
+        #for bar_num, num_pnts in enumerate(size):
+        for bar_num, (num_pnts, group) in enumerate(zip(size_withnan, grouped[col_name])):
+        # group is a tuple with 1st arguement as genotype and other factor levels
+        #and 2nd arguement as data values
+            #print 'size', bar_num, num_pnts#, group[1]
+            #print 'p.xaxis.get_majorticklocs()',p.xaxis.get_majorticklocs()
+            #print '****num_pnts****', num_pnts
+            x = np.random.normal(x_locs[bar_num], 0.05, size = int(num_pnts))
+            if display_raw:
+                pl.plot(x, group[1], linestyle='',marker = 'o', color ='magenta', alpha=0.3, markersize = 4.0)
+            #else:
+                # some how plotting the following invisible plot prevents the
+                # axes adjusting button in plot window from crashing.
+                pl.plot(x, group[1], linestyle='')
+            if autoscale:
+                pl.ylim(min_val, max_val)
         
           
         pl.ylabel(col_name, fontsize=24)
@@ -304,7 +341,7 @@ code - for each column, make 1 plot. In each plot, plot m*n means
         #pl.ticklabel_format(style = 'sci',scilimits=(0,0),axis='both', useOffset=False)
         print 'saving plot number', col_num + 1, 'of', num_plots
         pl.show()
-        pp.savefig()
+        pp.savefig(bbox_inches='tight')
         #pl.close()
     pp.close()
     
