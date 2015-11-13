@@ -49,6 +49,7 @@ print "====================================================="
 df = pd.read_table(data_file, delimiter = ',')
 
 col_names_numeric = dataframe_utils.numeric_cols(df)
+#print col_names_numeric
 
 df1 = df.copy()
 # filter data set if needed
@@ -61,8 +62,8 @@ par_vals = []
 
 for col in col_names_numeric:
     formula = ' '.join([col, '~', 
-                    'C(',factor_name, ',Treatment(reference = \'I5A+\'))'])
-    #print formula
+                    'C(',factor_name, ',Treatment(reference = \'PGKO\'))'])
+    print formula
     y, X = dmatrices(formula, data=df1, return_type='dataframe')
     mod = sm.OLS(y, X)    # Describe model
     res = mod.fit()       # Fit model
@@ -77,11 +78,12 @@ for col in col_names_numeric:
                     list(res.pvalues.values[1:])+ list(p_corr[1]))
 
 
+#df_out = pd.DataFrame(par_vals, columns = ['par_name', 'deg_free', 'r_sq_adj',
+#                    'p_val', 'p_J20A_I5A', 'p_NTG_I5A', 'p_adj_J20A_I5A', 'p_adj_NTG_I5A'])
 df_out = pd.DataFrame(par_vals, columns = ['par_name', 'deg_free', 'r_sq_adj',
-                    'p_val', 'p_J20A_I5A', 'p_NTG_I5A', 'p_adj_J20A_I5A', 'p_adj_NTG_I5A'])
+                    'p_val', 'p_PGKO_vs_NTG', 'p_PGKO_vs_PGKO_TNHET', 'p_PGKO_vs_PGKO_TNKO',
+                    'p_corr_PGKO_vs_NTG', 'p_corr_PGKO_vs_PGKO_TNHET', 'p_corr_PGKO_vs_PGKO_TNKO'])
 df_out = df_out.sort(columns = ['p_val']) # sort by p-values
 data_file_no_ext = os.path.splitext(data_file)[0]
-df_out.to_csv(data_file_no_ext + '_5minRefI5A_stats.csv',index = False)
+df_out.to_csv(data_file_no_ext + '_anova_pvals_vs_PGKO.csv',index = False)
             
-
-

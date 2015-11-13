@@ -10,16 +10,18 @@ import pandas as pd
 #import itertools
 #import math
 import sys
-'''
+
 sys.path.append('C:/Users/praveen.taneja/Dropbox/Analysis/python_progs/'
                 'EclipseIDEWorkSpace/pt_PyUtilsDir')
 sys.path.append('C:/Users/praveen.taneja/Dropbox/Analysis/python_progs/'
                 'python_data_analysis/cluster_analysis/cluster_analysis_git')
-'''                
+'''                 
 sys.path.append('/Users/taneja/Dropbox/Analysis/python_progs/'
                 'EclipseIDEWorkSpace/pt_PyUtilsDir')
 sys.path.append('/Users/taneja/Dropbox/Analysis/python_progs/'
-                'python_data_analysis/cluster_analysis/cluster_analysis_git')                
+                'python_data_analysis/cluster_analysis/cluster_analysis_git')
+'''
+              
 import dataframe_utils
 import pt_PyUtils
 import imp
@@ -32,8 +34,10 @@ imp.reload(pt_PyUtils)
 
 #######Start - Variables to be edited by user #####
 # number of levels in enclosing group or final group(if there is only one group)
-colors = ['magenta', 'blue', 'green', 'red']
-#colors = ['green', 'blue', 'orange', 'red'] 
+#colors = ['magenta', 'blue', 'green', 'red']
+colors = []#['green', 'blue', 'orange', 'red']
+#colors = ['blue', 'green', 'red']
+#colors = ['lightgreen', 'lightblue']#, 'orange', 'red'] 
 #######End - Variables to be edited by user #######
 ###################################################
 
@@ -59,5 +63,5 @@ out_data_file = data_file_no_ext + "_means"
 df = pd.read_table(data_file, delimiter = ',')
 print df.head(2)
 
-dataframe_utils.group_means(df, groupby_list, out_data_file, display_raw = False
+dataframe_utils.group_means(df, groupby_list, out_data_file, display_raw = True
                             , autoscale = False, colors = colors)

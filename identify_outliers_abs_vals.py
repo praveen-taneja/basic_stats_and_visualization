@@ -22,10 +22,10 @@ imp.reload(pt_PyUtils)
 #######Start - Variables to be edited by user #####
 
 outlier_minmax = []
-outlier_minmax.append(['RInAvg', 0, 400.0e6])
+outlier_minmax.append(['RInAvg', 0, 374.0e6])
 remove_outliers = True
 # output values for rows from following column if there is an outlier
-col_with_row_id = 'CellName'
+col_with_row_id = 'cell_name'
 
 #######End - Variables to be edited by user #######
 ###################################################

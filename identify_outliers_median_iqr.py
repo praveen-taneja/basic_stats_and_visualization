@@ -23,9 +23,9 @@ imp.reload(pt_PyUtils)
 
 # Path for input data file without file suffix
 
-times_IQR = 2.0 
+times_IQR = 1.5 
 
-col_with_row_id = 'CellName'
+col_with_row_id = 'cell_name'
 
 #######End - Variables to be edited by user #######
 ###################################################
@@ -56,15 +56,17 @@ iqr = upper_q - lower_q
 upper_cutoff = upper_q + times_IQR*iqr
 lower_cutoff = lower_q - times_IQR*iqr
 
-#print lower_q
-#print upper_q
+
+print '25% quantile', lower_q
+print '50% quantile', med
+print '75% quantile',upper_q
 #print iqr
 
 all_cols = lower_q.index.values # get col names
 
 for col in all_cols:
     # print cellname and outlier value
-    print col, lower_cutoff[col], upper_cutoff[col]
+    print col, 'lower and upper cut-off',lower_cutoff[col], upper_cutoff[col]
     for idx, val in zip(df.index, df[col]):
         if val < lower_cutoff[col] or val > upper_cutoff[col]:
             print 'outlier...',df[col_with_row_id][idx],val
